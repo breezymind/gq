@@ -11,6 +11,63 @@ go get "github.com/breezymind/gq"
 ```
 
 ## Usage
+* GetAttrString 예시
+```go
+strjson := "{\"espresso\": 1.33222, \"americano\": \"1234\"}"
+testmap := NewMapByJSONByte([]byte(strjson))
+
+fmt.Println(testmap.GetJSONPretty())
+// {
+// 	"americano": "1234",
+// 	"espresso": 1.33222
+// }
+
+fmt.Println(testmap.GetAttrString("espresso"))
+// 1
+fmt.Println(testmap.GetAttrString("americano"))
+// 1234
+```
+
+* SetAttrJSONString 예시
+```go
+newstruct := &TestStruct{
+    Name:     "Tomas",
+    Age:      20,
+    Messages: []interface{}{"Hello", "World"},
+    Gender:   "Male",
+}
+testmap := NewMapByStruct(newstruct)
+
+fmt.Println(testmap.GetJSONString())
+
+// {"age":20,"gender":"Male","messages":["Hello","World"],"name":"Tomas"}
+
+testmap.SetAttrJSONString(
+    "misc",
+    "{\"points\":[1,2,3,4],\"name\":\"cacao\"}",
+)
+fmt.Println(testmap.GetJSONPretty())
+
+// {
+// 	"age": 20,
+// 	"gender": "Male",
+// 	"messages": [
+// 		"Hello",
+// 		"World"
+// 	],
+// 	"misc": {
+// 		"name": "cacao",
+// 		"points": [
+// 			1,
+// 			2,
+// 			3,
+// 			4
+// 		]
+// 	},
+// 	"name": "Tomas"
+// }
+```
+> godoc 에는 더 다양한 예시가 있습니다. 아래 `예제보기` 를 통해서 보셔도 됩니다.
 
 ### map 
 > `Map 타입은 GQ 패키지 전반에서 사용할 기본 타입이며, map[string]interface{} 의 alias` 이기도 합니다.

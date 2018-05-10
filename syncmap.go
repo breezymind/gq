@@ -4,15 +4,18 @@ import (
 	"sync"
 )
 
+// SyncMap 타입은 "Map" 타입과 동일한 메소드들을 제공하며, mutex 로 동시성을 보장합니다.
 type SyncMap struct {
 	sync.RWMutex
 	data *Map
 }
 
+// NewSyncMap 은 `SyncMap 타입`으로 기본 인스턴스를 생성합니다.
 func NewSyncMap() *SyncMap {
 	return &SyncMap{data: &Map{}}
 }
 
+// NewSyncMapByJSONByte 은 JSON 포멧의 []byte 를 `SyncMap 타입`으로 변환하여 인스턴스를 생성합니다.
 func NewSyncMapByJSONByte(raw []byte) *SyncMap {
 	if res := NewMapByJSONByte(raw); res != nil {
 		return &SyncMap{data: res}
@@ -20,6 +23,7 @@ func NewSyncMapByJSONByte(raw []byte) *SyncMap {
 	return nil
 }
 
+// NewSyncMapByStruct 은 struct 를 `SyncMap 타입`으로 변환하여 인스턴스를 생성합니다.
 func NewSyncMapByStruct(raw interface{}) *SyncMap {
 	if res := NewMapByStruct(raw); res != nil {
 		return &SyncMap{data: NewMapByStruct(raw)}

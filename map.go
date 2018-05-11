@@ -292,7 +292,7 @@ func (t *Map) Keys() []string {
 func (t *Map) Values() []interface{} {
 	tmp := make([]interface{}, 0)
 	for _, key := range t.Keys() {
-		tmp = append(tmp, key)
+		tmp = append(tmp, t.GetAttrInterface(key))
 	}
 	return tmp
 }

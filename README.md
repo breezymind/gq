@@ -1,6 +1,6 @@
 # GQ [![GoDoc](https://godoc.org/github.com/breezymind/gq?status.svg)](https://godoc.org/github.com/breezymind/gq)
 
-[ENG TRANSLATION](https://github.com/hero0926/gq/master/README_ENG.md)
+[ENG TRANSLATION](https://github.com/hero0926/gq/blob/master/README_ENG.md)
 
 
 > GQ 는,  

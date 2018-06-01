@@ -83,6 +83,16 @@ func Test_InterfaceSlice2StringSlice(t *testing.T) {
 	t.Log(reflect.TypeOf(strslice))
 }
 
+func Test_ToKeyValueSlice(t *testing.T) {
+	strjson := "{\"name\":\"Karl\",\"age\":38}"
+	testmap := NewMapByJSONByte([]byte(strjson))
+
+	kvslice := testmap.ToKeyValueSlice()
+
+	t.Log(kvslice)
+	t.Log(reflect.TypeOf(kvslice))
+}
+
 // NOTE: Example
 func ExampleStruct2JSONByte() {
 	teststruct := &TestStruct{

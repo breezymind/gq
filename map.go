@@ -24,6 +24,29 @@ func NewMap() *Map {
 	return &Map{}
 }
 
+// NewMapByMapType 은 map[string]interface{}타입 (map[string]string, map[string]int 등)의 데이터를 `Map 타입`으로 변환하여 인스턴스를 생성합니다.
+func NewMapByMapTypes(raw interface{}) *Map {
+	res := make(Map)
+	switch raw.(type) {
+	case map[string]interface{}:
+		res = Map(raw.(map[string]interface{}))
+		return &res
+	case map[string]string:
+		for k, v := range raw.(map[string]string) {
+			res.SetAttr(k, v)
+		}
+	case map[string]int:
+		for k, v := range raw.(map[string]int) {
+			res.SetAttr(k, v)
+		}
+	case map[string]bool:
+		for k, v := range raw.(map[string]bool) {
+			res.SetAttr(k, v)
+		}
+	}
+	return &res
+}
+
 // NewMapByJSONByte 은 JSON 포멧의 []byte 를 `Map 타입`으로 변환하여 인스턴스를 생성합니다.
 func NewMapByJSONByte(raw []byte) *Map {
 	return (&Map{}).SetJSONByte(raw)
@@ -308,4 +331,14 @@ func (t *Map) Clone() *Map {
 	}
 	l := Map(dst)
 	return &l
+}
+
+// ToKeyValueSlice 는 `Map 타입` 을 `KVSlice 타입(Key-Value 데이터 구조의 Slice)`으로 변경하여 리턴합니다.
+func (t *Map) ToKeyValueSlice() KVSlice {
+	res := []*KV{}
+	val := t.Values()
+	for idx, key := range t.Keys() {
+		res = append(res, &KV{key, val[idx]})
+	}
+	return res
 }

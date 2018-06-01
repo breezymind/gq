@@ -187,3 +187,12 @@ func (t *SyncMap) Clone() *SyncMap {
 	defer t.RUnlock()
 	return &SyncMap{data: t.data.Clone()}
 }
+
+func (t *SyncMap) ToKeyValueSlice() KVSlice {
+	res := []*KV{}
+	val := t.Values()
+	for idx, key := range t.Keys() {
+		res = append(res, &KV{key, val[idx]})
+	}
+	return res
+}

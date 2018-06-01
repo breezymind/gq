@@ -159,7 +159,8 @@ fmt.Println(testmap.GetJSONPretty())
 
 ## Todos
 
-- [ ] gq map, test example, godoc 작성
+- [ ] gq slice
+- [x] gq map, test example, godoc 작성
 - [x] gq syncmap, test example, godoc 작성
 - [x] misc, test example 작성
 - [x] misc, godoc comment

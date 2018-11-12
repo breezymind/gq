@@ -1,13 +1,17 @@
 package gq
 
 import (
+	"bytes"
 	"encoding/json"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/gramework/runtimer"
+	"github.com/pquerna/ffjson/ffjson"
 	"github.com/sirupsen/logrus"
+	"github.com/vmihailenco/msgpack"
 )
 
 // Map 타입은 GQ 패키지 전반에서 사용할 기본 타입이며, map[string]interface{} 의 alias 이기도 합니다.
@@ -52,9 +56,14 @@ func NewMapByJSONByte(raw []byte) *Map {
 	return (&Map{}).SetJSONByte(raw)
 }
 
+// NewMapByMsgPackByte 은 JSON 포멧의 []byte 를 `Map 타입`으로 변환하여 인스턴스를 생성합니다.
+func NewMapByMsgPackByte(raw []byte) *Map {
+	return (&Map{}).SetMsgPackByte(raw)
+}
+
 // NewMapByStruct 은 struct 를 `Map 타입`으로 변환하여 인스턴스를 생성합니다.
 func NewMapByStruct(raw interface{}) *Map {
-	tmp, e := json.Marshal(raw)
+	tmp, e := ffjson.Marshal(raw)
 	if e != nil {
 		logrus.Errorf("NewMapByStruct Err : %s", e)
 		return nil
@@ -65,42 +74,78 @@ func NewMapByStruct(raw interface{}) *Map {
 
 // GetJSONPretty 는 `Map 타입`에 정의된 데이터셋을 JSON string 으로 보기좋게 리턴합니다
 func (t *Map) GetJSONPretty() string {
-	res, e := json.MarshalIndent(t, "", "\t")
-	if e != nil {
-		logrus.Errorf("GetPretty Err : %s", e)
+	res := &bytes.Buffer{}
+	enc := json.NewEncoder(res)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "\t")
+	if e := enc.Encode(t); e != nil {
+		logrus.Errorf("GetJSONByte Err : %s\n%s", e)
 		return ""
 	}
-	return string(res)
+	return res.String()
 }
 
 // GetJSONString 는 `Map 타입`에 정의된 데이터셋을 JSON 포멧(string) 으로 리턴합니다
 func (t *Map) GetJSONString() string {
 	res := t.GetJSONByte()
 	if res != nil {
-		return string(res)
+		// return string(res)
+		return BytesToString(res)
 	}
 	return ""
 }
 
 // GetJSONByte 는 `Map 타입`에 정의된 데이터셋을 JSON 포멧(byte) 으로 리턴합니다
 func (t *Map) GetJSONByte() []byte {
-	res, e := json.Marshal(t)
-	if e != nil {
-		logrus.Errorf("GetByte Err : %s", e)
+	res := &bytes.Buffer{}
+	enc := ffjson.NewEncoder(res)
+	enc.SetEscapeHTML(false)
+	if e := enc.Encode(t); e != nil {
+		logrus.Errorf("GetJSONByte Err : %s\n%s", e)
 		return nil
 	}
-	return res
+	return res.Bytes()
+}
+
+// GetMsgPackString 는 `Map 타입`에 정의된 데이터셋을 MsgPack 포멧(string) 으로 리턴합니다
+func (t *Map) GetMsgPackString() string {
+	res := t.GetMsgPackByte()
+	if res != nil {
+		// return string(res)
+		return BytesToString(res)
+	}
+	return ""
+}
+
+// GetMsgPackByte 는 `Map 타입`에 정의된 데이터셋을 MsgPack 포멧(byte) 으로 리턴합니다
+func (t *Map) GetMsgPackByte() []byte {
+	b, e := msgpack.Marshal(t)
+	if e != nil {
+		return nil
+	}
+	return b
 }
 
 // SetJSONString 는 JSON 포멧 형태의 string을 `Map 타입`으로 재정의합니다.
 func (t *Map) SetJSONString(raw string) *Map {
-	return t.SetJSONByte([]byte(raw))
+	return t.SetJSONByte(StringToBytes(raw))
 }
 
 // SetJSONByte 는 JSON 포멧 형태의 []byte를 `Map 타입`으로 재정의합니다.
 func (t *Map) SetJSONByte(raw []byte) *Map {
-	if e := json.Unmarshal(raw, &t); e != nil {
-		logrus.Errorf("SetByte Err : %s", e)
+	if e := ffjson.Unmarshal(raw, t); e != nil {
+		// logrus.Errorf("SetJSONByte Err : %s\n%s\n", e, string(raw))
+		logrus.Errorf("SetJSONByte Err : %s\n%s\n", e, BytesToString(raw))
+		return nil
+	}
+	return t
+}
+
+// SetMsgPackByte 는 MsgPack 포멧 형태의 []byte를 `Map 타입`으로 재정의합니다.
+func (t *Map) SetMsgPackByte(raw []byte) *Map {
+	if e := msgpack.Unmarshal(raw, t); e != nil {
+		// logrus.Errorf("SetJSONByte Err : %s\n%s\n", e, string(raw))
+		logrus.Errorf("SetMsgPackByte Err : %s\n%s\n", e, BytesToString(raw))
 		return nil
 	}
 	return t
@@ -108,7 +153,7 @@ func (t *Map) SetJSONByte(raw []byte) *Map {
 
 // SetStruct 는 Struct를 `Map 타입`으로 재정의합니다.
 func (t *Map) SetStruct(raw interface{}) *Map {
-	res, e := json.Marshal(raw)
+	res, e := ffjson.Marshal(raw)
 	if e != nil {
 		logrus.Errorf("SetStruct Err : %s", e)
 		return nil
@@ -136,13 +181,13 @@ func (t *Map) SetAttrMap(k string, v *Map) *Map {
 
 // SetAttrJSONString 는 Map에 새로운 key/value를 정의하며, value 값은 JSON 값(string)으로 참조하여 정의 합니다.
 func (t *Map) SetAttrJSONString(k, v string) *Map {
-	return t.SetAttrJSONByte(k, []byte(v))
+	return t.SetAttrJSONByte(k, StringToBytes(v))
 }
 
 // SetAttrJSONByte 는 `Map 타입` 데이터 셋에 새로운 속성값을 JSON 포멧형태의 값(byte)으로 정의 합니다.
 func (t *Map) SetAttrJSONByte(k string, v []byte) *Map {
 	attr := make((map[string]interface{}))
-	if e := json.Unmarshal(v, &attr); e != nil {
+	if e := ffjson.Unmarshal(v, &attr); e != nil {
 		logrus.Errorf("SetByte Err : %s", e)
 		return nil
 	}
@@ -250,10 +295,27 @@ func (t *Map) GetAttrInt(k string) int {
 	v := t.GetAttrInterface(k)
 	switch v.(type) {
 	case string:
-		v, _ := strconv.Atoi(strings.Split((v.(string)), ".")[0])
+		// v, _ := strconv.Atoi(strings.Split((v.(string)), ".")[0])
+		v, _ := runtimer.Atoi(v.(string))
 		return v
 	case float64:
 		return int(v.(float64))
+	case uint64:
+		return int(v.(uint64))
+	case int64:
+		return int(v.(int64))
+	case uint32:
+		return int(v.(uint32))
+	case int32:
+		return int(v.(int32))
+	case uint16:
+		return int(v.(uint16))
+	case int16:
+		return int(v.(int16))
+	case uint8:
+		return int(v.(uint8))
+	case int8:
+		return int(v.(int8))
 	default:
 		return v.(int)
 	}

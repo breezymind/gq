@@ -20,7 +20,6 @@ func Test_RSortByValue(t *testing.T) {
 	kvslice.RSortByValue()
 	t.Log("kvslice.SortByValue() after")
 	t.Log(kvslice.GetJSONString())
-	t.Log(kvslice.GetJSONPretty())
 }
 
 func ExampleRSortByValue() {
@@ -35,14 +34,13 @@ func ExampleRSortByValue() {
 	kvslice.RSortByValue()
 	fmt.Println("kvslice.SortByValue() after")
 	fmt.Println(kvslice.GetJSONString())
-	fmt.Println(kvslice.GetJSONPretty())
 
 	// Output:
 	// {"apple":38,"banana":999}
-	//
+
 	// gq.KVSlice
 	// [{"k":"apple","v":38},{"k":"banana","v":999}]
-	//
+
 	// kvslice.SortByValue() after
 	// [{"k":"banana","v":999},{"k":"apple","v":38}]
 }

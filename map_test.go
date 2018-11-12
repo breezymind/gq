@@ -41,6 +41,12 @@ func Test_GetJSONByte(t *testing.T) {
 	t.Log(newmap.GetJSONByte())
 }
 
+func Test_GetMsgPackByte(t *testing.T) {
+	strjson := "{\"name\":\"Karl\",\"age\":38,\"messages\":[\"Hello\"],\"gender\":\"Male\"}"
+	newmap := NewMapByJSONByte([]byte(strjson))
+	t.Log(newmap.GetMsgPackByte())
+}
+
 func Test_SetJSONString(t *testing.T) {
 	strjson := "{\"name\":\"Karl\",\"age\":38}"
 	testmap := NewMapByJSONByte([]byte(strjson))

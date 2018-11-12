@@ -1,15 +1,29 @@
 package gq
 
 import (
-	"encoding/json"
+	"unsafe"
 
+	"github.com/gramework/runtimer"
+	"github.com/pquerna/ffjson/ffjson"
 	"github.com/sirupsen/logrus"
+	"github.com/vmihailenco/msgpack"
 )
+
+// Struct2MsgPackByte 는 Struct를 MsgPack 포멧으로 변환하여 []byte 로 리턴합니다
+func Struct2MsgPackByte(s interface{}) []byte {
+	t, e := msgpack.Marshal(s)
+	if e != nil {
+		logrus.Errorf("Struct2MsgPackByte Err : %s", e)
+		return nil
+	}
+	return t
+}
 
 // Struct2JSONByte 는 Struct를 JSON 포멧으로 변환하여 []byte 로 리턴합니다
 func Struct2JSONByte(s interface{}) []byte {
-	t, e := json.Marshal(s)
+	t, e := ffjson.Marshal(s)
 	if e != nil {
+		logrus.Errorf("Struct2JSONByte Err : %s", e)
 		return nil
 	}
 	return t
@@ -17,16 +31,16 @@ func Struct2JSONByte(s interface{}) []byte {
 
 // Struct2JSONString 는 Struct를 JSON 포멧으로 변환하여 string 로 리턴합니다
 func Struct2JSONString(s interface{}) string {
-	return string(Struct2JSONByte(s))
+	return BytesToString(Struct2JSONByte(s))
 }
 
 // Map2Struct 는 map[string]interface{}를 struct 로 변환합니다
 func Map2Struct(m map[string]interface{}, s interface{}) interface{} {
-	t, e := json.Marshal(m)
+	t, e := ffjson.Marshal(m)
 	if e != nil {
 		return nil
 	}
-	e = json.Unmarshal(t, s)
+	e = ffjson.Unmarshal(t, s)
 	if e != nil {
 		return nil
 	}
@@ -35,13 +49,22 @@ func Map2Struct(m map[string]interface{}, s interface{}) interface{} {
 
 // JSONString2Struct 는 JSON 포멧 형태의 string을 struct 로 변환합니다
 func JSONString2Struct(raw string, s interface{}) interface{} {
-	return JSONByte2Struct([]byte(raw), s)
+	return JSONByte2Struct(StringToBytes(raw), s)
 }
 
 // JSONByte2Struct 는 JSON 포멧 형태의 []byte를 struct 로 변환합니다
 func JSONByte2Struct(raw []byte, s interface{}) interface{} {
-	if e := json.Unmarshal(raw, &s); e != nil {
-		logrus.Errorf("SetByte Err : %s", e)
+	if e := ffjson.Unmarshal(raw, &s); e != nil {
+		logrus.Errorf("JSONByte2Struct Err : %s", e)
+		return nil
+	}
+	return s
+}
+
+// MsgPackByte2Struct 는 MsgPack 포멧 형태의 []byte를 struct 로 변환합니다
+func MsgPackByte2Struct(raw []byte, s interface{}) interface{} {
+	if e := msgpack.Unmarshal(raw, &s); e != nil {
+		logrus.Errorf("MsgPackByte2Struct Err : %s", e)
 		return nil
 	}
 	return s
@@ -60,4 +83,19 @@ func InterfaceSlice2StringSlice(tmp []interface{}) []string {
 		}
 	}
 	return res
+}
+
+//
+// from gramework
+func BytesToString(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
+}
+
+func StringToBytes(s string) []byte {
+	strstruct := runtimer.StringStructOf(&s)
+	return *(*[]byte)(unsafe.Pointer(&runtimer.SliceType2{
+		Array: strstruct.Str,
+		Len:   strstruct.Len,
+		Cap:   strstruct.Len,
+	}))
 }

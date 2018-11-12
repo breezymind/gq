@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"sort"
 
+	"github.com/pquerna/ffjson/ffjson"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -57,9 +59,10 @@ func (t KVSlice) GetJSONString() string {
 	return ""
 }
 
+// TODO: {"k":"apple","v":38} 와 같이 처리 할지 {"apple":38} 와 같이 처리 할지
 // GetJSONByte 는 `KVSlice 타입`에 정의된 KV 데이터셋을 JSON 포멧(byte) 으로 리턴합니다
 func (t KVSlice) GetJSONByte() []byte {
-	res, e := json.Marshal(t)
+	res, e := ffjson.Marshal(t)
 	if e != nil {
 		logrus.Errorf("GetByte Err : %s", e)
 		return nil

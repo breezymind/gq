@@ -293,7 +293,6 @@ func (t *Map) GetAttrInt(k string) int {
 	v := t.GetAttrInterface(k)
 	switch v.(type) {
 	case string:
-		// v, _ := strconv.Atoi(strings.Split((v.(string)), ".")[0])
 		v, _ := runtimer.Atoi(v.(string))
 		return v
 	case float64:

@@ -1,5 +1,8 @@
 # GQ [![GoDoc](https://godoc.org/github.com/breezymind/gq?status.svg)](https://godoc.org/github.com/breezymind/gq)
 
+[ENG TRANSLATION](https://github.com/hero0926/gq/blob/master/README_ENG.md)
+
+
 > GQ 는,  
 > 
 > JSON 포멧(string, []byte)의 데이터를 golang 의 특정 struct 또는 동시성을 보장하는 map[string]interface{} 형태로 변환하여 동적으로 속성을 가공 가능하도록 도와줍니다.
